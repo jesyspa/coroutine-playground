@@ -1,0 +1,40 @@
+/*
+fun powersOf2() = sequence {
+    var i = 1
+    repeat(32) {
+        yield(i)
+        i *= 2
+    }
+}
+*/
+
+method powersOf2() returns (__res: Seq[Int])
+  ensures |__res| == 32 // Derived from "repeat(32)"
+  ensures forall k: Int :: 0 <= k < 32 ==> __res[k] == pow(2, k) // User-provided?
+{
+  var i: Int := 1
+  __res := Seq() // Derived from return type of "sequence"
+
+  var __idx: Int := 0 // Derived from ...
+  while (__idx < 32)  // ... "repeat(32)"
+    invariant 0 <= __idx <= 32 // Derived from "repeat(32)"
+    invariant |__res| == __idx // Derived from "repeat(32)" and "yield"?
+    invariant i == pow(2, __idx) // User-provided?
+    invariant forall k: Int :: 0 <= k < __idx ==> __res[k] == pow(2, k) // User-provided?
+    decreases 32 - __idx // Derived from "repeat(32)" [optional]
+  {
+    __res := __res ++ Seq(i) // Derived from "yield(i)"
+    i := i * 2
+    __idx := __idx + 1 // Derived from "repeat(32)"
+  }
+}
+
+
+
+function pow(base: Int, exp: Int): Int
+  requires 0 < base
+  requires 0 <= exp
+  ensures 0 <= result
+{
+  exp == 0 ? 1 : base * pow(base, exp - 1)
+}
