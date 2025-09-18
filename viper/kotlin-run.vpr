@@ -1,0 +1,100 @@
+/*
+fun example1() {
+  val sum = run {
+    val a = 1
+    val b = 2
+
+    a + b
+  }
+
+  assert(sum == 3)
+}
+*/
+
+method example1a() {
+  var sum: Int
+  // Encoding idea:
+  //   - use Kotlin contract "calls-in-place exactly-once" to encode inlining semantics
+  //   - encoding assumes that run() itself cannot modify anything reachable from the current scope
+
+  // IF run() itself could capture any variables, we would have to havoc them here,
+  // since the Kotlin contract does not tell us what happens before run() invokes its lambda
+
+  {
+    var a: Int := 1
+    var b: Int := 2
+
+    sum := a + b
+  }
+
+  // Analogous: If run() could capture, havocing would be necessary here
+
+  assert sum == 3
+}
+
+method example1b() {
+  var sum: Int
+  // Encoding idea:
+  //   - use Kotlin contract "calls-in-place exactly-once" to encode inlining semantics
+  //   - encoding assumes that run() itself cannot modify anything reachable from the current scope
+
+  // IF run() itself could capture any variables, we would have to havoc them here,
+  // since the Kotlin contract does not tell us what happens before run() invokes its lambda
+
+  sum := example1_lambda()
+
+  // Analogous: If run() could capture, havocing would be necessary here
+
+  assert sum == 3 // Fails expectedly
+}
+
+// TODO: Account for receiver
+method example1_lambda() returns (sum: Int)
+  requires true
+  ensures true // Not strong enough 
+{
+  var a: Int := 1
+  var b: Int := 2
+
+  sum := a + b
+}
+
+
+/*
+fun example2() {
+  var c = 2
+  
+  val sum = run {
+    val a = 1
+    c = c + 1
+    val b = c * 2
+
+    a + b + c
+  }
+
+  assert(c == 3)
+  assert(sum == 10)
+}
+*/
+
+method example2a() {
+  var c: Int := 2
+
+  var sum: Int
+  // Encoding idea and assumptions analogous to above
+
+  // No havocking?
+
+  {
+    var a: Int := 1
+    c := c + 1
+    var b: Int := c * 2
+
+    sum := a + b + c
+  }
+
+  // No havocking?
+
+  assert c == 3
+  assert sum == 10
+}
