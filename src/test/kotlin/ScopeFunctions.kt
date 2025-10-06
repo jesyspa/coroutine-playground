@@ -71,6 +71,50 @@ class ScopeFunctionExamplesTest {
         assert(b == null)
     }
 
+    class Globals(val a: Int, val b: Boolean)
+    fun ifTrueLogicExample(g: Globals): Int {
+        // requires acc(g.a, read)
+        // requires acc(g.b, read)
+        // requires g.b ==> g.a != 0
+        return g.b.ifTrue {
+            // requires acc(g.b, read)
+            // requires acc(g.a, read)
+            // requires g.b ==> g.a != 0
+            // requires g.b
+            // derive: g.a != 0
+            100 / g.a
+        } ?: 0
+
+        /* Note: this translation into methods does not quite work:
+         * method example_lambda(g: Ref) returns (ret: Int)
+         *   requires acc(g.a, read)
+         *   requires acc(g.b, read)
+         *   requires g.b ==> g.a != 0
+         *   requires g.b
+         * {
+         *   ret := 100 / g.a
+         * }
+         *
+         * But even with this, we cannot verify the call site:
+         *
+         * method ifTrueLogicExample(g: Globals) returns (ret: Int)
+         *   requires acc(g.a, read)
+         *   requires acc(g.b, read)
+         *   requires g.b ==> g.a != 0
+         * {
+         *   // ifTrue pre-lambda call havoc
+         *   if (*) {
+         *     ret := example_lambda(g)
+         *   }
+         *   // ifTrue post-lambda call havoc
+         * }
+         *
+         * ifTrue needs to somehow express that its first argument holds if the lambda is called.
+         * In other words, we need something like a "call invariant".
+         * Then verifying ifTrue would require verifying that call invariant.
+         */
+    }
+
     @Test
     fun ifEmptyExamples() {
         // ifEmpty returns the list itself if it's not empty, otherwise returns the block result.'
